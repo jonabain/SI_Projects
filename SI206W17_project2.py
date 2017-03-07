@@ -73,20 +73,18 @@ def get_umsi_data():
 	if formatted_key in CACHE_DICTION:
 		response_text = CACHE_DICTION[formatted_key]
 	else:
-		response = api.search(q = key,lang = 'en', rpp = 3)
-		response = response["statuses"]
-		CACHE_DICTION[formatted_key] = response
-		cache_file = open(CACHE_FNAME, 'w', encoding = 'utf-8')
-		cache_file.write(json.dumps(CACHE_DICTION))
-		cache_file.close()
-		response_list = []
-		for twat in response:
-			response_list.append(twat)
-		return response_list
+		response = requests.get("https://www.si.umich.edu/directory?field_person_firstname_value=&field_person_lastname_value=&rid=All")
+		htmldoc = response.text
+		soup = BeautifulSoup(htmldoc,"html.parser")
+
+		response_2 = requests.get("https://www.si.umich.edu/directory?field_person_firstname_value=&field_person_lastname_value=&rid=All&page=11")
+		htmldoc_2 = response_2.text
+		soup_2 = BeautifulSoup(htmldoc_2, "html.parser")
 
 
 ## PART 2 (b) - Create a dictionary saved in a variable umsi_titles 
 ## whose keys are UMSI people's names, and whose associated values are those people's titles, e.g. "PhD student" or "Associate Professor of Information"...
+umsi_titles = {}
 
 
 
@@ -98,20 +96,32 @@ def get_umsi_data():
 ## INPUT: Any string
 ## Behavior: See instructions. Should search for the input string on twitter and get results. Should check for cached data, use it if possible, and if not, cache the data retrieved.
 ## RETURN VALUE: A list of strings: A list of just the text of 5 different tweets that result from the search.
-
-
-
+def get_five_tweets(any_string):
+	formatted_key = "twitter_{}".format(key)
+	if formatted_key in CACHE_DICTION:
+		response_text = CACHE_DICTION[formatted_key]
+	else:
+		response = api.search(q = any_string, lang = 'en', rpp = 5)
+		response = response["statuses"]
+		CACHE_DICTION[formatted_key] = response
+		cache_file = open(CACHE_FNAME, 'w', encoding = 'utf-8')
+		cache_file.write(json.dumps(CACHE_DICTION))
+		cache_file.close()
+		response_list = []
+		for twat in response:
+			response_list.append(twat)
+		return response_list
 
 ## PART 3 (b) - Write one line of code to invoke the get_five_tweets function with the phrase "University of Michigan" and save the result in a variable five_tweets.
-
-
-
+five_tweets = get_five_tweets("University of Michigan")
 
 ## PART 3 (c) - Iterate over the five_tweets list, invoke the find_urls function that you defined in Part 1 on each element of the list, and accumulate a new list of each of the total URLs in all five of those tweets in a variable called tweet_urls_found. 
-
-
-
-
+tweet_urls_found = []
+for twat in five_tweets:
+	if find_urls(twat) == []:
+		next twat
+	else:
+		tweet_urls_found.append(find_urls(twat))
 
 ########### TESTS; DO NOT CHANGE ANY CODE BELOW THIS LINE! ###########
 
