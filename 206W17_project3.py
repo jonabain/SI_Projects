@@ -15,7 +15,7 @@ import json
 import sqlite3
 
 ## Your name: Jonathan Bain
-## The names of anyone you worked with on this project:
+## The names of anyone you worked with on this project: Mike Miller
 
 #####
 
@@ -27,16 +27,11 @@ access_token = twitter_info.access_token
 access_token_secret = twitter_info.access_token_secret
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
-
 # Set up library to grab stuff from twitter with your authentication, and return it in a JSON format 
 api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
-
 ##### END TWEEPY SETUP CODE
-
 ## Task 1 - Gathering data
-
 ## Define a function called get_user_tweets that gets at least 20 Tweets from a specific Twitter user's timeline, and uses caching. The function should return a Python object representing the data that was retrieved from Twitter. (This may sound familiar...) We have provided a CACHE_FNAME variable for you for the cache file name, but you must write the rest of the code in this file.
-
 CACHE_FNAME = "SI206_project3_cache.json"
 # Put the rest of your caching setup here:
 try:
@@ -46,13 +41,18 @@ try:
 	CACHE_DICTION = json.loads(cache_contents)
 except:
 	CACHE_DICTION = {}
-
 # Define your function get_user_tweets here:
 def get_user_tweets(handle):
 	if handle in CACHE_DICTION:
 		return CACHE_DICTION[handle]
 	else:
-		return api.user_timeline(screen_name = handle)
+		results = api.user_timeline(screen_name = handle)
+		if len(results) >= 20:
+			CACHE_DICTION[handle] = results # add it to the dictionary -- new key-val pair
+			f = open(CACHE_FNAME,'w') # open the cache file for writing
+			f.write(json.dumps(CACHE_DICTION)) # make the whole dictionary holding data and unique identifiers into a json-formatted string, and write that wholllle string to a file so you'll have it next time!
+			f.close()
+		return results
 
 # Write an invocation to the function for the "umich" user timeline and save the result in a variable called umich_tweets:
 try:
@@ -60,7 +60,6 @@ try:
 except:
 	umich_tweets = get_user_tweets("umich")
 	CACHE_DICTION['umich_tweets'] = umich_tweets
-
 ## Task 2 - Creating database and loading data into database
 
 # You will be creating a database file: project3_tweets.db
@@ -103,26 +102,23 @@ c.execute('DROP TABLE IF EXISTS Users')
 c.execute('CREATE TABLE Users(user_id TEXT, screen_name TEXT, num_favs INTEGER, description TEXT)')
 usernames = []
 mentions = [tweet['entities']['user_mentions'] for tweet in umich_tweets]
-for x in mentions:
-	for mention in x:
-		usernames.append(mention['screen_name'])
+for x in y:
+	for z in x:
+		usernames.append(z['screen_name'])
 s = 'INSERT INTO Users Values (?, ?, ?, ?)'
 for x in usernames:
 	try:
 		data = CACHE_DICTION[x]
-		insert_tuple = (data['id'], x, data['favourites_count'], data['description'])
-		c.execute(s, insert_tuple)
+		tup = (data['id'], x, data['favourites_count'], data['description'])
+		c.execute(s, tup)
 	except:
-		print("second exception clause")
 		data = api.get_user(screen_name = x)
 		CACHE_DICTION[x] = data
-		insert_tuple = (data['id'], x, data['favourites_count'], data['description'])
-		c.execute(s, insert_tuple)
+		tup = (data['id'], x, data['favourites_count'], data['description'])
+		c.execute(s, tup)
 conn.commit()
 ## Task 3 - Making queries, saving data, fetching data
-
 # All of the following sub-tasks require writing SQL statements and executing them using Python.
-
 # Make a query to select all of the records in the Users database. Save the list of tuples in a variable called users_info.
 c.execute('SELECT * FROM Users')
 users_info = c.fetchall()
@@ -141,24 +137,29 @@ q = 'SELECT Users.screen_name, Tweets.text FROM Users INNER JOIN Tweets ON Users
 c.execute(q)
 joined_result = c.fetchall()
 ## Task 4 - Manipulating data with comprehensions & libraries
-
 ## Use a set comprehension to get a set of all words (combinations of characters separated by whitespace) among the descriptions in the descriptions_fav_users list. Save the resulting set in a variable called description_words.
-
-
-
+description_words = {word for string in descriptions_fav_users for word in string.split()}
 ## Use a Counter in the collections library to find the most common character among all of the descriptions in the descriptions_fav_users list. Save that most common character in a variable called most_common_char. Break any tie alphabetically (but using a Counter will do a lot of work for you...).
-
-
-
+counter = collections.Counter()
+for d in descriptions_fav_users:
+	for word in d:
+		counter.update(word)
+most_common_char = counter.most_common(1)[0][0]
 ## Putting it all together...
 # Write code to create a dictionary whose keys are Twitter screen names and whose associated values are lists of tweet texts that that user posted. You may need to make additional queries to your database! To do this, you can use, and must use at least one of: the DefaultDict container in the collections library, a dictionary comprehension, list comprehension(s). Y
 # You should save the final dictionary in a variable called twitter_info_diction.
-
-
-
+c.execute('SELECT Users.screen_name, Tweets.text FROM Users INNER JOIN Tweets ON Users.user_id = Tweets.user_id')
+more_twats = c.fetchall()
+from collections import defaultdict
+twitter_info_diction = defaultdict(list)
+for t in more_twats:
+	twitter_info_diction[t[0]].append(t[1])
+twitter_info_diction = dict(twitter_info_diction)
 ### IMPORTANT: MAKE SURE TO CLOSE YOUR DATABASE CONNECTION AT THE END OF THE FILE HERE SO YOU DO NOT LOCK YOUR DATABASE (it's fixable, but it's a pain). ###
-
-
+f = open(CACHE_FNAME,'w')
+f.write(json.dumps(CACHE_DICTION))
+f.close()
+conn.close()
 ###### TESTS APPEAR BELOW THIS LINE ######
 ###### Note that the tests are necessary to pass, but not sufficient -- must make sure you've followed the instructions accurately! ######
 print("\n\nBELOW THIS LINE IS OUTPUT FROM TESTS:\n")
