@@ -101,7 +101,7 @@ for twat in umich_tweets:
 c.execute('DROP TABLE IF EXISTS Users')
 c.execute('CREATE TABLE Users(user_id TEXT, screen_name TEXT, num_favs INTEGER, description TEXT)')
 usernames = []
-mentions = [tweet['entities']['user_mentions'] for tweet in umich_tweets]
+y = [tweet['entities']['user_mentions'] for tweet in umich_tweets]
 for x in y:
 	for z in x:
 		usernames.append(z['screen_name'])
@@ -271,7 +271,6 @@ class Task4(unittest.TestCase):
 		self.assertEqual(type(list(twitter_info_diction.values())[0]),type([]),"Testing that a value in the dictionary is a list")
 	def test_twitter_info_diction4(self):
 		self.assertEqual(type(list(twitter_info_diction.values())[0][0]),type(""),"Testing that a single value inside one of those list values-in-dictionary is a string! (See instructions!)")
-
 
 if __name__ == "__main__":
 	unittest.main(verbosity=2)
