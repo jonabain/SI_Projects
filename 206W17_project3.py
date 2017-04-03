@@ -32,8 +32,8 @@ api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 ##### END TWEEPY SETUP CODE
 ## Task 1 - Gathering data
 ## Define a function called get_user_tweets that gets at least 20 Tweets from a specific Twitter user's timeline, and uses caching. The function should return a Python object representing the data that was retrieved from Twitter. (This may sound familiar...) We have provided a CACHE_FNAME variable for you for the cache file name, but you must write the rest of the code in this file.
-CACHE_FNAME = "SI206_project3_cache.json"
 # Put the rest of your caching setup here:
+CACHE_FNAME = "SI206_project3_cache.json"
 try:
 	cache_file = open(CACHE_FNAME,'r')
 	cache_contents = cache_file.read()
@@ -42,22 +42,22 @@ try:
 except:
 	CACHE_DICTION = {}
 # Define your function get_user_tweets here:
-def get_user_tweets(handle):
-	if handle in CACHE_DICTION:
-		return CACHE_DICTION[handle]
+def get_user_tweets(key):
+	formatted_key = "twitter_{}".format(key)
+	if formatted_key in CACHE_DICTION:
+		response_list = CACHE_DICTION[formatted_key]
 	else:
-		results = api.user_timeline(screen_name = handle)
-		if len(results) >= 20:
-			CACHE_DICTION[handle] = results # add it to the dictionary -- new key-val pair
-			f = open(CACHE_FNAME,'w') # open the cache file for writing
-			f.write(json.dumps(CACHE_DICTION)) # make the whole dictionary holding data and unique identifiers into a json-formatted string, and write that wholllle string to a file so you'll have it next time!
-			f.close()
-		return results
+		response =  api.user_timeline(key)
+		CACHE_DICTION[formatted_key] = response
+		cache_file = open(CACHE_FNAME, 'w', encoding = 'utf-8')
+		cache_file.write(json.dumps(CACHE_DICTION))
+		cache_file.close()
+		response_list = []
+		for r in response:
+			response_list.append(r)
+	return response_list
 
 # Write an invocation to the function for the "umich" user timeline and save the result in a variable called umich_tweets:
-try:
-	umich_tweets = CACHE_DICTION['umich_tweets']
-except:
 	umich_tweets = get_user_tweets("umich")
 	CACHE_DICTION['umich_tweets'] = umich_tweets
 ## Task 2 - Creating database and loading data into database
