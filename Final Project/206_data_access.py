@@ -48,6 +48,12 @@ try:
 except:
 	CACHE_DICTION = {}
 
+# Define a class Movie
+
+# Define a class TwitterUser
+
+# Define a class Tweet
+
 # Function to get twitter data from search term
 def get_user_tweets(key):
 	formatted_key = "twitter_{}".format(key)
@@ -70,12 +76,67 @@ def get_user_twitter_info(key):
 	return None
 
 # Function to get movie data
+def get_movie_info(key):
+	return None
 
-# Invocation of get_user_tweets
+####
+#### PART 2 - DATA COLLECTION
+####
+# Invocations of get_user_tweets
 user = "jessicaalba"
 user_tweets = get_user_tweets(user)
 CACHE_DICTION[user] = user_tweets
 
+# Invocations of get_user_twitter_info
+
+# Invocations of get_movie_info
+
+####
+#### PART 3 - STORE/LOAD INFO IN DATABASE
+####
+# Create a database file
+
+conn = sqlite3.connect('SI206_final_project.db')
+
+# Create tables 
+
+c = conn.cursor()
+c.execute('DROP TABLE IF EXISTS Tweets')
+table = 'CREATE TABLE IF NOT EXISTS '
+table += 'Tweets (tweet_id INTEGER PRIMARY KEY, '
+table += 'text TEXT, user_posted TEXT, movie_search TEXT, num_retweets INTEGER, num_favs INTEGER)'
+c.execute(table)
+c.execute('DROP TABLE IF EXISTS Users')
+table = 'CREATE TABLE IF NOT EXISTS '
+table += 'Users (user_id INTEGER PRIMARY KEY, '
+table += 'screen_name TEXT, num_favs INTEGER)'
+c.execute(table)
+c.execute('DROP TABLE IF EXISTS Movies')
+table = 'CREATE TABLE IF NOT EXISTS '
+table += 'Users (id INTEGER PRIMARY KEY, '
+table += 'title TEXT, director TEXT, num_languages INTEGER, imdb_rating INTEGER, top_actor TEXT)'
+c.execute(table)
+
+# Upload data to database
+
+####
+#### PART 4 - PROCESS DATA
+####
+
+
+
+####
+#### PART 5 - CREATE AN OUTPUT FILE 
+####
+
+
+
+
+
+
+
+
+##############################################################
 # Put your tests here, with any edits you now need from when you turned them in with your project plan.
 
 class FinalProjectTests(unittest.TestCase):
