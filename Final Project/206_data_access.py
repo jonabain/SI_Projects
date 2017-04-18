@@ -23,7 +23,58 @@ import json
 import sqlite3
 
 # Begin filling in instructions....
+####
+#### PART 1 - THE LEG WORK
+#### SET UP TWEEPY AND CACHING PATTERN
+#### WRITE A FUNCTION TO FETCH TWITTER DATA
+#### MAKE AN INVOCATION OF THE TWITTER FUNCTION
+#### WRITE A FUNCTION TO FETCH MOVIE DATA
+# Setup TWEEPY and authenticate twitter (this info in twitter_info file)
+consumer_key = twitter_info.consumer_key
+consumer_secret = twitter_info.consumer_secret
+access_token = twitter_info.access_token
+access_token_secret = twitter_info.access_token_secret
+auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_token, access_token_secret)
+api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 
+# Set up caching pattern
+CACHE_FNAME = "SI206_final_project_cache.json"
+try:
+	cache_file = open(CACHE_FNAME,'r')
+	cache_contents = cache_file.read()
+	cache_file.close()
+	CACHE_DICTION = json.loads(cache_contents)
+except:
+	CACHE_DICTION = {}
+
+# Function to get twitter data from search term
+def get_user_tweets(key):
+	formatted_key = "twitter_{}".format(key)
+	if formatted_key in CACHE_DICTION:
+		response_list = CACHE_DICTION[formatted_key]
+	else:
+		response =  api.user_timeline(key)
+		CACHE_DICTION[formatted_key] = response
+		cache_file = open(CACHE_FNAME, 'w', encoding = 'utf-8')
+		cache_file.write(json.dumps(CACHE_DICTION))
+		cache_file.close()
+		response_list = []
+		for r in response:
+			response_list.append(r)
+	return response_list
+
+# Function to get Twitter data about User
+
+def get_user_twitter_info(key):
+	return None
+
+# Function to get movie data
+
+# Invocation of get_user_tweets
+user = "jessicaalba"
+user_tweets = get_user_tweets(user)
+CACHE_DICTION[user] = user_tweets
 
 # Put your tests here, with any edits you now need from when you turned them in with your project plan.
 
