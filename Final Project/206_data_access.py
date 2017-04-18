@@ -96,7 +96,7 @@ CACHE_DICTION[user] = user_tweets
 ####
 # Create a database file
 
-conn = sqlite3.connect('SI206_final_project.db')
+conn = sqlite3.connect('finalproject.db')
 
 # Create tables 
 
@@ -118,18 +118,41 @@ table += 'title TEXT, director TEXT, num_languages INTEGER, imdb_rating INTEGER,
 c.execute(table)
 
 # Upload data to database
+# Upload User Data
+s = 'INSERT INTO Users VALUES (?, ?, ?)'
+t = (user_tweets[1]['user']['id'], user_tweets[1]['user']['screen_name'], user_tweets[1]['user']['favourites_count'])
+upload = []
+upload.append(t)
+ids = []
+ids.append(user_tweets[1]['user']['id'])
+for i in range(len(user_tweets)):
+	if len(user_tweets[i]['entities']['user_mentions']) > 0:
+		for j in range(len(user_tweets[i]['entities']['user_mentions'])):
+			u = api.get_user(user_tweets[i]['entities']['user_mentions'][j]['screen_name'])
+			t = (u['id'], u['screen_name'], u['favourites_count'])
+			if u['id'] not in ids:
+				upload.append(t)
+				ids.append(u['id'])
+for u in upload:
+	c.execute(s, u)
+conn.commit()
+# Upload Tweet Data
+
+# Upload Movie Data
 
 ####
 #### PART 4 - PROCESS DATA
 ####
 
+# Start comparing favorite counts to IMDB ratings
 
 
 ####
 #### PART 5 - CREATE AN OUTPUT FILE 
 ####
 
-
+# open/or create a txt file to write to
+# write findings processed in Part 4
 
 
 
@@ -146,42 +169,42 @@ class FinalProjectTests(unittest.TestCase):
 		f = open("SI206_finalproject_cache.json","r").read()
 		self.assertTrue("matt_damon" in f)
 	def test_movies_table(self):
-		conn = sqlite3.connect('final_project_tweets.db')
+		conn = sqlite3.connect('final_project.db')
 		cur = conn.cursor()
 		cur.execute('SELECT * FROM Movies');
 		result = cur.fetchall()
 		self.assertTrue(len(result)>=3, "Testing there are at least 3 Movies in the Movies table.")
 		conn.close()
 	def test_movies_table_columns(self):
-		conn = sqlite3.connect('final_project_tweets.db')
+		conn = sqlite3.connect('finalproject.db')
 		cur = conn.cursor()
 		cur.execute('SELECT * FROM Movies');
 		result = cur.fetchall()
 		self.assertTrue(len(result[0])==6,"Testing that there are 6 columns in the Movies table.")
 		conn.close()
 	def test_users_table(self):
-		conn = sqlite3.connect('final_project_tweets.db')
+		conn = sqlite3.connect('finalproject.db')
 		cur = conn.cursor()
 		cur.execute('SELECT * FROM Users');
 		result = cur.fetchall()
 		self.assertTrue(len(result)>=3,"Testing that there are at least 3 distinct users in the Users table.")
 		conn.close()
 	def test_users_table_columns(self):
-		conn = sqlite3.connect('final_project_tweets.db')
+		conn = sqlite3.connect('finalproject.db')
 		cur = conn.cursor()
 		cur.execute('SELECT * FROM Users');
 		result = cur.fetchall()
 		self.assertTrue(len(result[0])==3,"Testing that there are 3 columns in the Users table.")
 		conn.close()
 	def test_tweets_table(self):
-		conn = sqlite3.connect('final_project_tweets.db')
+		conn = sqlite3.connect('finalproject.db')
 		cur = conn.cursor()
 		cur.execute('SELECT * FROM Tweets');
 		result = cur.fetchall()
 		self.assertTrue(len(result)>=3,"Testing that there are at least 3 distinct Tweets in the Tweets table.")
 		conn.close()
 	def test_tweets_table_columns(self):
-		conn = sqlite3.connect('final_project_tweets.db')
+		conn = sqlite3.connect('finalproject.db')
 		cur = conn.cursor()
 		cur.execute('SELECT * FROM Tweets');
 		result = cur.fetchall()
